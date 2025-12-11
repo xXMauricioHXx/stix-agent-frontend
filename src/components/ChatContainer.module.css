@@ -1,0 +1,43 @@
+.container {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+.messagesWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* Custom scrollbar */
+.container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.container::-webkit-scrollbar-track {
+  background: transparent;
+  margin: var(--spacing-md);
+}
+
+.container::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-light);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-lg);
+  }
+}

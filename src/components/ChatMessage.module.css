@@ -1,0 +1,243 @@
+.messageWrapper {
+  display: flex;
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+.userWrapper {
+  justify-content: flex-end;
+}
+
+.botWrapper {
+  justify-content: flex-start;
+}
+
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+  max-width: 70%;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.avatar svg {
+  width: 20px;
+  height: 20px;
+}
+
+.userAvatar {
+  background: var(--gradient-secondary);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.userMessage .content {
+  align-items: flex-end;
+}
+
+.botMessage .content {
+  align-items: flex-start;
+}
+
+.text {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.userMessage .text {
+  background: var(--gradient-primary);
+  color: white;
+  border-bottom-right-radius: var(--spacing-xs);
+}
+
+.botMessage .text {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  border-bottom-left-radius: var(--spacing-xs);
+}
+
+.text:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 0 var(--spacing-xs);
+}
+
+/* Markdown Styling for Bot Messages */
+.markdown {
+  line-height: 1.6;
+}
+
+.markdown p {
+  margin: 0 0 0.75em 0;
+}
+
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  margin: 1em 0 0.5em 0;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.markdown h1 {
+  font-size: 1.5em;
+}
+.markdown h2 {
+  font-size: 1.3em;
+}
+.markdown h3 {
+  font-size: 1.1em;
+}
+.markdown h4 {
+  font-size: 1em;
+}
+
+.markdown ul,
+.markdown ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.markdown li {
+  margin: 0.25em 0;
+}
+
+.markdown code {
+  background: rgba(0, 120, 212, 0.1);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: "Courier New", monospace;
+  font-size: 0.9em;
+  color: var(--color-primary-dark);
+}
+
+.markdown pre {
+  background: var(--bg-tertiary);
+  padding: 1em;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+
+.markdown pre code {
+  background: none;
+  padding: 0;
+  color: var(--text-primary);
+}
+
+.markdown blockquote {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 1em;
+  margin: 0.75em 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.markdown a {
+  color: var(--color-primary);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--transition-fast);
+}
+
+.markdown a:hover {
+  border-bottom-color: var(--color-primary);
+}
+
+.markdown strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.markdown em {
+  font-style: italic;
+}
+
+.markdown hr {
+  border: none;
+  border-top: 1px solid var(--glass-border);
+  margin: 1em 0;
+}
+
+.markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75em 0;
+}
+
+.markdown th,
+.markdown td {
+  border: 1px solid var(--glass-border);
+  padding: 0.5em;
+  text-align: left;
+}
+
+.markdown th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+}
+
+/* Plain text for user messages */
+.plainText {
+  margin: 0;
+  line-height: 1.5;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .message {
+    max-width: 85%;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .avatar svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .text {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.9rem;
+  }
+}
