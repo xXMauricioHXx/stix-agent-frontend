@@ -1,0 +1,96 @@
+.item {
+  user-select: none;
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  padding: 0.375rem 0;
+  transition: all var(--transition-fast);
+  border-radius: 0.375rem;
+  margin: 0 0.25rem;
+  border-left: 2px solid transparent;
+}
+
+.row.selected {
+  background: rgba(0, 120, 212, 0.1);
+  border-left-color: var(--color-primary);
+}
+
+.row:not(.selected):hover {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .row.selected {
+  background: rgba(0, 120, 212, 0.15);
+}
+
+[data-theme="dark"] .row:not(.selected):hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.expandButton {
+  margin-right: 0.375rem;
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.spacer {
+  width: 1rem;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  cursor: pointer;
+  gap: 0.375rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  line-height: 1.25;
+  word-break: break-word;
+  color: var(--text-secondary);
+}
+
+.label.selected {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.menuButton {
+  margin-left: 0.375rem;
+  margin-right: 0.375rem;
+  opacity: 0.8;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.menuButton:hover {
+  opacity: 1;
+}
+
+.children {
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .label {
+    font-size: 0.875rem;
+  }
+}
