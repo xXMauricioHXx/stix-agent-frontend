@@ -40,7 +40,6 @@ export class AzureWikiAdapter {
   }
 
   async getPageContent(pageUrl: string): Promise<string> {
-    console.log(pageUrl);
     const params = new URLSearchParams({
       recursionLevel: "full",
       includeContent: "true",

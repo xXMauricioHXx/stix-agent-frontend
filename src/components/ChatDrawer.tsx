@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Message } from "@/types/chat";
 import { sendQuestion, ChatApiError } from "@/services/chatApi";
 import ChatMessage from "@/components/ChatMessage";
@@ -11,20 +11,39 @@ import styles from "./ChatDrawer.module.css";
 interface ChatDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  contextPath?: string;
+  contextType?: "page" | "tree";
+  initialMessage?: string;
 }
 
-export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
+export default function ChatDrawer({
+  isOpen,
+  onClose,
+  contextPath,
+  contextType,
+  initialMessage,
+}: ChatDrawerProps) {
+  const getInitialMessages = useCallback((): Message[] => {
+    const baseMessage: Message = {
       id: "1",
-      text: "Olá! 👋 Sou o assistente virtual da Stix, sua empresa de pontos de fidelidade! Como posso ajudá-lo hoje?",
+      text:
+        initialMessage ||
+        "Olá! 👋 Sou o assistente virtual da Stix, sua empresa de pontos de fidelidade! Como posso ajudá-lo hoje?",
       sender: "bot",
       timestamp: new Date(),
-    },
-  ]);
+    };
+    return [baseMessage];
+  }, [initialMessage]);
+
+  const [messages, setMessages] = useState<Message[]>(getInitialMessages());
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Reset messages when context changes or initial message changes
+  useEffect(() => {
+    setMessages(getInitialMessages());
+  }, [contextPath, contextType, initialMessage, getInitialMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,7 +68,32 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
     setIsLoading(true);
 
     try {
-      const response = await sendQuestion(userMessage.text);
+      let response: string;
+
+      // Use context API if contextPath is provided
+      if (contextPath && contextType) {
+        const apiResponse = await fetch("/api/chat/context", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: userMessage.text,
+            contextPath,
+            contextType,
+          }),
+        });
+
+        if (!apiResponse.ok) {
+          throw new Error("Failed to send message");
+        }
+
+        const data = await apiResponse.json();
+        response = data.answer;
+      } else {
+        // Use global chat API
+        response = await sendQuestion(userMessage.text);
+      }
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -78,6 +122,8 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
       setIsLoading(false);
     }
   };
+
+  const isContextMode = !!contextPath && !!contextType;
 
   return (
     <>
@@ -118,9 +164,13 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                 </svg>
               </div>
               <div className={styles.headerContent}>
-                <h2 className={styles.title}>Stix Chat</h2>
+                <h2 className={styles.title}>
+                  Stix Chat {isContextMode && "- Contexto"}
+                </h2>
                 <p className={styles.subtitle}>
-                  Seu assistente especialista em pontos de fidelidade
+                  {isContextMode
+                    ? `Conversando sobre: ${contextPath}`
+                    : "Seu assistente especialista em pontos de fidelidade"}
                 </p>
               </div>
             </div>

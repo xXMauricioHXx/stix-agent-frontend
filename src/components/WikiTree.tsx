@@ -16,7 +16,6 @@ interface WikiTreeProps {
   selectedPage?: WikiPage | null;
   level?: number;
   onEmbed?: (page: WikiPage, type: "page" | "tree") => void;
-  onChat?: (page: WikiPage, type: "page" | "tree") => void;
 }
 
 export const WikiTree: React.FC<WikiTreeProps> = ({
@@ -25,7 +24,6 @@ export const WikiTree: React.FC<WikiTreeProps> = ({
   selectedPage,
   level = 0,
   onEmbed,
-  onChat,
 }) => {
   const [isExpanded, setIsExpanded] = useState(level === 0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -66,20 +64,6 @@ export const WikiTree: React.FC<WikiTreeProps> = ({
     handleMenuClose(e);
     if (onEmbed) {
       onEmbed(page, "tree");
-    }
-  };
-
-  const handleChatPage = (e: React.MouseEvent) => {
-    handleMenuClose(e);
-    if (onChat) {
-      onChat(page, "page");
-    }
-  };
-
-  const handleChatTree = (e: React.MouseEvent) => {
-    handleMenuClose(e);
-    if (onChat) {
-      onChat(page, "tree");
     }
   };
 
@@ -149,7 +133,6 @@ export const WikiTree: React.FC<WikiTreeProps> = ({
               onClose={handleMenuClose}
               onClick={(e) => e.stopPropagation()}
             >
-              <MenuItem onClick={handleChatPage}>Chat</MenuItem>
               <MenuItem onClick={handleEmbedPage}>Inserir Página</MenuItem>
               {hasChildren && (
                 <MenuItem onClick={handleEmbedTree}>Inserir Pasta</MenuItem>
@@ -169,7 +152,6 @@ export const WikiTree: React.FC<WikiTreeProps> = ({
               selectedPage={selectedPage}
               level={level + 1}
               onEmbed={onEmbed}
-              onChat={onChat}
             />
           ))}
         </div>

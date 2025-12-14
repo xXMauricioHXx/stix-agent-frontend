@@ -54,17 +54,23 @@ export class SupabaseAdapter {
         metadata
       );
 
-      for (const embedding of embeddings) {
-        const { error } = await this.supabase.from("documents").insert({
-          content,
-          metadata,
-          embedding,
-        });
+      for (const item of embeddings) {
+        const { content, metadata, embedding } = item;
+
+        const { error, data, status } = await this.supabase
+          .from("documents")
+          .insert({
+            content,
+            metadata,
+            embedding,
+          });
 
         if (error) {
           console.error("Error saving document to Supabase:", error);
           throw error;
         }
+
+        console.log("Document saved to Supabase:", data, "Status:", status);
       }
     } catch (error) {
       console.error("Error in saveDocument:", error);

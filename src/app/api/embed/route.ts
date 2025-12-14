@@ -6,6 +6,7 @@ import { AdapterFactory } from "@/adapters/factory";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("Starting embedding process");
     const body = await request.json();
     const { page, type } = body as { page: WikiPage; type: "page" | "tree" };
 
@@ -15,6 +16,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    console.log("Embedding page:", page);
 
     const azureWikiAdapter = AdapterFactory.createAdapter("azure-wiki");
     const supabaseAdapter = AdapterFactory.createAdapter("supabase");

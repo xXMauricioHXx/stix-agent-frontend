@@ -14,6 +14,13 @@ export async function GET(request: Request) {
   try {
     if (type === "tree") {
       const tree = await adapter.getWikiTree();
+
+      if (tree.path === "/Stix") {
+        tree.subPages = tree.subPages.filter(
+          (page) => page.path === "/Stix/Tribo Fidelização"
+        );
+      }
+
       return NextResponse.json(tree);
     }
 

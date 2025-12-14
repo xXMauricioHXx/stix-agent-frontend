@@ -16,6 +16,7 @@ export class EmbeddingService {
   }
 
   private async processPage(page: WikiPage) {
+    console.log("Processing page:", page);
     if (!page.url) {
       console.warn(`Skipping page without URL: ${page.path}`);
       return;

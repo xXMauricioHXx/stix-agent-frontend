@@ -78,7 +78,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
   return (
     <nav className={styles.nav}>
       <div className={styles.container}>
-        <h4 className={styles.title}>On This Page</h4>
+        <h4 className={styles.title}>Conteúdo</h4>
         <ul className={styles.list}>
           {headings.map(({ id, text, level }) => (
             <li
