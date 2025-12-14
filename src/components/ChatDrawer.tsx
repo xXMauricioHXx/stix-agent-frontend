@@ -14,6 +14,7 @@ interface ChatDrawerProps {
   contextPath?: string;
   contextType?: "page" | "tree";
   initialMessage?: string;
+  pageContent?: string;
 }
 
 export default function ChatDrawer({
@@ -22,6 +23,7 @@ export default function ChatDrawer({
   contextPath,
   contextType,
   initialMessage,
+  pageContent,
 }: ChatDrawerProps) {
   const getInitialMessages = useCallback((): Message[] => {
     const baseMessage: Message = {
@@ -72,15 +74,16 @@ export default function ChatDrawer({
 
       // Use context API if contextPath is provided
       if (contextPath && contextType) {
-        const apiResponse = await fetch("/api/chat/context", {
+        const apiResponse = await fetch("/api/chat/contextual", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            message: userMessage.text,
-            contextPath,
-            contextType,
+            question: userMessage.text,
+            pageId: contextPath,
+            path: contextPath,
+            pageContent: pageContent || "",
           }),
         });
 

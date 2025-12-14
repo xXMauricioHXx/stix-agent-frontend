@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { OpenIAAdapter } from "./openia.adapter";
+import { WikiPageRecord } from "@/types/wiki-pages.types";
 
 export class SupabaseAdapter {
   private supabaseKey: string;
@@ -76,5 +77,106 @@ export class SupabaseAdapter {
       console.error("Error in saveDocument:", error);
       throw error;
     }
+  }
+
+  // Wiki Pages Management
+
+  async getWikiPage(pageId: string): Promise<WikiPageRecord | null> {
+    const { data, error } = await this.supabase
+      .from("wiki_pages")
+      .select("*")
+      .eq("page_id", pageId)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        // No rows returned
+        return null;
+      }
+      console.error("Error fetching wiki page:", error);
+      throw error;
+    }
+
+    return data as WikiPageRecord;
+  }
+
+  async upsertWikiPage(record: Partial<WikiPageRecord>): Promise<void> {
+    const now = new Date().toISOString();
+    const dataToUpsert = {
+      ...record,
+      updated_at: now,
+      created_at: record.created_at || now,
+    };
+
+    const { error } = await this.supabase
+      .from("wiki_pages")
+      .upsert(dataToUpsert, { onConflict: "page_id" });
+
+    if (error) {
+      console.error("Error upserting wiki page:", error);
+      throw error;
+    }
+  }
+
+  async deleteDocumentsByPageId(pageId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from("documents")
+      .delete()
+      .eq("metadata->>kind", "azure_wiki")
+      .eq("metadata->>page_id", pageId);
+
+    if (error) {
+      console.error("Error deleting documents by page_id:", error);
+      throw error;
+    }
+  }
+
+  async insertDocument(
+    content: string,
+    embedding: number[],
+    metadata: Record<string, any>
+  ): Promise<void> {
+    const { error } = await this.supabase.from("documents").insert({
+      content,
+      metadata,
+      embedding,
+    });
+
+    if (error) {
+      console.error("Error inserting document:", error);
+      throw error;
+    }
+  }
+
+  async searchSimilarByPageId(
+    query: string,
+    pageId: string,
+    matchCount: number = 5
+  ) {
+    const queryEmbedding = await this.openIAAdapter.embedding(query);
+
+    // Use RPC function with filter for page_id
+    const { data, error } = await this.supabase.rpc("match_documents", {
+      query_embedding: queryEmbedding,
+      match_count: matchCount,
+      filter: { page_id: pageId },
+    });
+
+    if (error) {
+      console.error("Erro ao buscar similaridade no Supabase:", error);
+      throw error;
+    }
+
+    const contextText = data
+      .map(
+        (doc: any) =>
+          `[${doc.metadata && (doc.metadata as any).path}]: ${doc.content}`
+      )
+      .join("\n\n");
+
+    return {
+      contextText,
+      documents: data,
+    };
   }
 }

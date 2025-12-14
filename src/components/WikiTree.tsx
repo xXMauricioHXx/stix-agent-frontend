@@ -7,7 +7,6 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Menu, MenuItem } from "@mui/material";
 import styles from "./WikiTree.module.css";
 
 interface WikiTreeProps {
@@ -26,10 +25,8 @@ export const WikiTree: React.FC<WikiTreeProps> = ({
   onEmbed,
 }) => {
   const [isExpanded, setIsExpanded] = useState(level === 0);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const hasChildren = page.subPages && page.subPages.length > 0;
   const isSelected = selectedPage?.path === page.path;
-  const open = Boolean(anchorEl);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -41,30 +38,6 @@ export const WikiTree: React.FC<WikiTreeProps> = ({
   const handleSelectPage = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSelectPage(page);
-  };
-
-  const handleMenuClick = (e: React.MouseEvent<HTMLElement>) => {
-    e.stopPropagation();
-    setAnchorEl(e.currentTarget);
-  };
-
-  const handleMenuClose = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setAnchorEl(null);
-  };
-
-  const handleEmbedPage = (e: React.MouseEvent) => {
-    handleMenuClose(e);
-    if (onEmbed) {
-      onEmbed(page, "page");
-    }
-  };
-
-  const handleEmbedTree = (e: React.MouseEvent) => {
-    handleMenuClose(e);
-    if (onEmbed) {
-      onEmbed(page, "tree");
-    }
   };
 
   const label = (
@@ -118,26 +91,11 @@ export const WikiTree: React.FC<WikiTreeProps> = ({
         {/* Menu (only when selected) */}
         {isSelected && (
           <>
-            <button
-              type="button"
-              className={styles.menuButton}
-              onClick={handleMenuClick}
-            >
+            <button type="button" className={styles.menuButton}>
               <MoreVertIcon
                 sx={{ fontSize: 16, color: "rgb(156, 163, 175)" }}
               />
             </button>
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleMenuClose}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <MenuItem onClick={handleEmbedPage}>Inserir Página</MenuItem>
-              {hasChildren && (
-                <MenuItem onClick={handleEmbedTree}>Inserir Pasta</MenuItem>
-              )}
-            </Menu>
           </>
         )}
       </div>

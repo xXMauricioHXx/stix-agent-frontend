@@ -65,35 +65,46 @@ export const WikiContent: React.FC<WikiContentProps> = ({
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
-            h1: ({ ...props }) => (
+            h1: ({ children, ...props }) => (
               <h1
-                id={props.children
+                id={children
                   ?.toString()
                   .toLowerCase()
                   .replace(/[^a-z0-9]+/g, "-")
                   .replace(/(^-|-$)/g, "")}
                 {...props}
-              />
+              >
+                {children}
+              </h1>
             ),
-            h2: ({ ...props }) => (
+            h2: ({ children, ...props }) => (
               <h2
-                id={props.children
+                id={children
                   ?.toString()
                   .toLowerCase()
                   .replace(/[^a-z0-9]+/g, "-")
                   .replace(/(^-|-$)/g, "")}
                 {...props}
-              />
+              >
+                {children}
+              </h2>
             ),
-            h3: ({ ...props }) => (
+            h3: ({ children, ...props }) => (
               <h3
-                id={props.children
+                id={children
                   ?.toString()
                   .toLowerCase()
                   .replace(/[^a-z0-9]+/g, "-")
                   .replace(/(^-|-$)/g, "")}
                 {...props}
-              />
+              >
+                {children}
+              </h3>
+            ),
+            a: ({ children, ...props }) => (
+              <a {...props} target="_blank" rel="noopener noreferrer">
+                {children}
+              </a>
             ),
           }}
         >

@@ -29,6 +29,10 @@ function DocsPageContent() {
   const [drawerInitialMessage, setDrawerInitialMessage] = useState<
     string | undefined
   >(undefined);
+  const [indexingStatus, setIndexingStatus] = useState<{
+    isIndexing: boolean;
+    path: string | null;
+  }>({ isIndexing: false, path: null });
 
   useEffect(() => {
     async function fetchTree() {
@@ -56,6 +60,8 @@ function DocsPageContent() {
 
     if (page.content) {
       setContent(page.content);
+      // Trigger lazy indexing in background
+      triggerLazyIndexing(page.path);
       return;
     }
 
@@ -71,6 +77,9 @@ function DocsPageContent() {
         }
         const data = await response.json();
         setContent(data.content);
+
+        // Trigger lazy indexing in background
+        triggerLazyIndexing(page.path);
       } catch (err) {
         console.error(err);
         setContent("Error loading content.");
@@ -79,6 +88,72 @@ function DocsPageContent() {
       }
     } else {
       setContent("");
+    }
+  };
+
+  // Trigger lazy indexing in background (non-blocking)
+  const triggerLazyIndexing = async (path: string) => {
+    try {
+      console.log(`[Lazy Index] Triggering indexing for: ${path}`);
+
+      // Set indexing status
+      setIndexingStatus({ isIndexing: true, path });
+
+      // Show toast notification
+      const toastId = toast.loading("Adicionando a base de conhecimento...", {
+        position: "bottom-right",
+      });
+
+      const response = await fetch("/api/wiki/index", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ path }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`[Lazy Index] Result:`, result);
+
+        if (result.changed) {
+          console.log(
+            `[Lazy Index] Page reindexed with ${result.chunk_count} chunks`
+          );
+          toast.update(toastId, {
+            render: `Página adicionada à base de conhecimento`,
+            type: "success",
+            isLoading: false,
+            autoClose: 3000,
+          });
+        } else {
+          console.log(`[Lazy Index] Page already indexed, skipped`);
+          toast.update(toastId, {
+            render: "Página já adicionada à base de conhecimento",
+            type: "info",
+            isLoading: false,
+            autoClose: 2000,
+          });
+        }
+      } else {
+        console.error(
+          `[Lazy Index] Failed to index page:`,
+          await response.text()
+        );
+        toast.update(toastId, {
+          render: "Erro ao adicionar página à base de conhecimento",
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
+      }
+    } catch (error) {
+      console.error(`[Lazy Index] Error triggering indexing:`, error);
+      toast.error("Erro ao adicionar página à base de conhecimento");
+      // Don't block UI on indexing errors
+    } finally {
+      // Clear indexing status
+      setIndexingStatus({ isIndexing: false, path: null });
     }
   };
 
@@ -211,6 +286,7 @@ function DocsPageContent() {
         contextPath={drawerContext?.path}
         contextType={drawerContext?.type}
         initialMessage={drawerInitialMessage}
+        pageContent={content}
       />
 
       {/* Floating Chat Button */}
