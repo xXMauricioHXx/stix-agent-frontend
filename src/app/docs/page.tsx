@@ -7,6 +7,7 @@ import { DocsHeader } from "@/components/DocsHeader";
 import { DocsSidebar } from "@/components/DocsSidebar";
 import { TableOfContents } from "@/components/TableOfContents";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ContextChat } from "@/components/ContextChat";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import styles from "./docs.module.css";
 
@@ -18,6 +19,11 @@ function DocsPageContent() {
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatContext, setChatContext] = useState<{
+    path: string;
+    type: "page" | "tree";
+  } | null>(null);
 
   useEffect(() => {
     async function fetchTree() {
@@ -26,6 +32,7 @@ function DocsPageContent() {
         if (!response.ok) {
           throw new Error("Failed to fetch wiki tree");
         }
+
         const data = await response.json();
         setTree(data);
       } catch (err: any) {
@@ -42,7 +49,6 @@ function DocsPageContent() {
     setSelectedPage(page);
     setIsMobileMenuOpen(false);
 
-    // Se já tiver conteúdo em cache no objeto:
     if (page.content) {
       setContent(page.content);
       return;
@@ -50,6 +56,7 @@ function DocsPageContent() {
 
     if (page.url) {
       setIsLoadingContent(true);
+
       try {
         const response = await fetch(
           `/api/wiki?type=content&url=${encodeURIComponent(page.url)}`
@@ -68,6 +75,39 @@ function DocsPageContent() {
     } else {
       setContent("");
     }
+  };
+
+  const handleEmbed = async (page: WikiPage, type: "page" | "tree") => {
+    try {
+      console.log(`Embedding ${type}:`, page.path);
+      const response = await fetch("/api/embed", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ page, type }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to embed content");
+      }
+
+      setChatContext({ path: page.path, type });
+      setIsChatOpen(true);
+
+      alert("Embedding started! You can now chat with this context.");
+    } catch (error) {
+      console.error("Error embedding content:", error);
+      alert("Error embedding content. Check console for details.");
+    }
+  };
+
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
+
+  const handleChat = (page: WikiPage, type: "page" | "tree") => {
+    setChatContext({ path: page.path, type });
+    setIsChatOpen(true);
+    setIsChatMinimized(false);
   };
 
   if (isLoadingTree) {
@@ -119,6 +159,8 @@ function DocsPageContent() {
           onSelectPage={handleSelectPage}
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
+          onEmbed={handleEmbed}
+          onChat={handleChat}
         />
 
         {/* Main Content Area */}
@@ -138,6 +180,23 @@ function DocsPageContent() {
             <TableOfContents content={content} />
           </div>
         </main>
+
+        {/* Context Chat Overlay */}
+        {isChatOpen && chatContext && (
+          <div
+            className={`${styles.chatOverlay} ${
+              isChatMinimized ? styles.chatOverlayMinimized : ""
+            }`}
+          >
+            <ContextChat
+              contextPath={chatContext.path}
+              contextType={chatContext.type}
+              onClose={() => setIsChatOpen(false)}
+              isMinimized={isChatMinimized}
+              onMinimize={() => setIsChatMinimized(!isChatMinimized)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

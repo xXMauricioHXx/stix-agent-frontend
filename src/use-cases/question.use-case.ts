@@ -8,12 +8,15 @@ export class QuestionUseCase {
   ) {}
 
   async execute(question: string) {
-    const matches = await this.supabaseAdapter.searchSimilar(question, {
-      matchCount: 5,
-      filter: {},
-    });
+    const { contextText, documents } = await this.supabaseAdapter.searchSimilar(
+      question,
+      {
+        matchCount: 5,
+        filter: {},
+      }
+    );
 
-    if (!matches || matches.length === 0) {
+    if (!contextText) {
       return {
         answer:
           "Não encontrei informações relevantes na base de conhecimento para responder essa pergunta.",
@@ -21,21 +24,11 @@ export class QuestionUseCase {
       };
     }
 
-    // 2) Montar o contexto a partir dos chunks
-    const context = matches
-      .map(
-        (m, idx) =>
-          `Fonte ${idx + 1} (similaridade: ${m.similarity.toFixed(3)}):\n${
-            m.content
-          }`
-      )
-      .join("\n\n---\n\n");
-
-    const { answer } = await this.openIAAdapter.chat(context, question);
+    const answer = await this.openIAAdapter.chat(contextText, question);
 
     return {
       answer,
-      sources: matches,
+      sources: documents,
     };
   }
 }

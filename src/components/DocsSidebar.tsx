@@ -11,6 +11,8 @@ interface DocsSidebarProps {
   onSelectPage: (page: WikiPage) => void;
   isOpen?: boolean;
   onClose?: () => void;
+  onEmbed?: (page: WikiPage, type: "page" | "tree") => void;
+  onChat?: (page: WikiPage, type: "page" | "tree") => void;
 }
 
 export const DocsSidebar: React.FC<DocsSidebarProps> = ({
@@ -19,6 +21,8 @@ export const DocsSidebar: React.FC<DocsSidebarProps> = ({
   onSelectPage,
   isOpen = true,
   onClose,
+  onEmbed,
+  onChat,
 }) => {
   return (
     <>
@@ -47,6 +51,8 @@ export const DocsSidebar: React.FC<DocsSidebarProps> = ({
                 onClose?.();
               }}
               selectedPage={selectedPage}
+              onEmbed={onEmbed}
+              onChat={onChat}
             />
           ) : (
             <div className={styles.loading}>Loading navigation...</div>

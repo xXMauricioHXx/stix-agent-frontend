@@ -20,6 +20,10 @@
   max-width: 70%;
 }
 
+.botMessage {
+  max-width: 100%;
+}
+
 .avatar {
   width: 36px;
   height: 36px;
@@ -94,6 +98,8 @@
 /* Markdown Styling for Bot Messages */
 .markdown {
   line-height: 1.6;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .markdown p {
@@ -154,6 +160,8 @@
   border-radius: var(--radius-md);
   overflow-x: auto;
   margin: 0.75em 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .markdown pre code {

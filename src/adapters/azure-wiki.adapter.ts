@@ -61,27 +61,47 @@ export class AzureWikiAdapter {
     }
 
     const data = await response.json();
-    let content = data.content || "";
+    const content = data.content || "";
 
-    // Extract IDs from the pageUrl
-    // Format: https://dev.azure.com/{org}/{project}/_apis/wiki/wikis/{wikiId}/pages/...
+    const pageIds = this.getURLIds(pageUrl);
+
+    if (pageIds && content) {
+      return this.replaceImagePaths(content, pageIds);
+    }
+
+    return content;
+  }
+
+  private replaceImagePaths(
+    content: string,
+    pageIds: { org: string; project: string; wikiId: string }
+  ): string {
+    const { org, project, wikiId } = pageIds;
+
+    return content.replace(
+      /!\[(.*?)\]\((\/.attachments\/.+?)\)/g,
+      (match: string, altText: string, imagePath: string) => {
+        const imageUrl = `https://dev.azure.com/${org}/${project}/_apis/git/repositories/${wikiId}/Items?path=${imagePath}&download=false&resolveLfs=true&%24format=octetStream&api-version=5.0-preview.1&sanitize=true&versionDescriptor.version=wikiMaster`;
+        return `![${altText}](${imageUrl})`;
+      }
+    );
+  }
+
+  private getURLIds(pageUrl: string) {
     const urlMatch = pageUrl.match(
       /https:\/\/dev\.azure\.com\/([^\/]+)\/([^\/]+)\/_apis\/wiki\/wikis\/([^\/]+)\/pages/
     );
 
-    if (urlMatch && content) {
+    if (urlMatch) {
       const [, org, project, wikiId] = urlMatch;
 
-      // Replace relative image paths with full authenticated URLs
-      content = content.replace(
-        /!\[(.*?)\]\((\/.attachments\/.+?)\)/g,
-        (match: string, altText: string, imagePath: string) => {
-          const imageUrl = `https://dev.azure.com/${org}/${project}/_apis/git/repositories/${wikiId}/Items?path=${imagePath}&download=false&resolveLfs=true&%24format=octetStream&api-version=5.0-preview.1&sanitize=true&versionDescriptor.version=wikiMaster`;
-          return `![${altText}](${imageUrl})`;
-        }
-      );
+      return {
+        org,
+        project,
+        wikiId,
+      };
     }
 
-    return content;
+    return null;
   }
 }

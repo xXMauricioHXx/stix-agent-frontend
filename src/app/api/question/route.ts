@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { QuestionUseCase } from "@/use-cases/question.use-case";
 import { OpenIAAdapter } from "@/adapters/openia.adapter";
 import { SupabaseAdapter } from "@/adapters/supabase.adapter";
+import { AdapterFactory } from "@/adapters/factory";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,8 +16,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const openIAAdapter = new OpenIAAdapter();
-    const supabaseAdapter = new SupabaseAdapter();
+    const openIAAdapter = AdapterFactory.createAdapter(
+      "openia"
+    ) as OpenIAAdapter;
+
+    const supabaseAdapter = AdapterFactory.createAdapter(
+      "supabase"
+    ) as SupabaseAdapter;
+
     const questionUseCase = new QuestionUseCase(openIAAdapter, supabaseAdapter);
 
     const result = await questionUseCase.execute(question);
