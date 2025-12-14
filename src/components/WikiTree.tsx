@@ -150,9 +150,9 @@ export const WikiTree: React.FC<WikiTreeProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               <MenuItem onClick={handleChatPage}>Chat</MenuItem>
-              <MenuItem onClick={handleEmbedPage}>Embed Page</MenuItem>
+              <MenuItem onClick={handleEmbedPage}>Inserir Página</MenuItem>
               {hasChildren && (
-                <MenuItem onClick={handleEmbedTree}>Embed Folder</MenuItem>
+                <MenuItem onClick={handleEmbedTree}>Inserir Pasta</MenuItem>
               )}
             </Menu>
           </>

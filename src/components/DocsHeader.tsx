@@ -51,7 +51,7 @@ export const DocsHeader: React.FC<DocsHeaderProps> = ({
           <SearchIcon className={styles.searchIcon} sx={{ fontSize: 20 }} />
           <input
             type="text"
-            placeholder="Search documentation..."
+            placeholder="Procurar documentação..."
             className={styles.searchInput}
           />
           <kbd className={styles.searchKbd}>⌘K</kbd>

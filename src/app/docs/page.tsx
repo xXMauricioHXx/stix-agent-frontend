@@ -8,6 +8,8 @@ import { DocsSidebar } from "@/components/DocsSidebar";
 import { TableOfContents } from "@/components/TableOfContents";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ContextChat } from "@/components/ContextChat";
+import ChatDrawer from "@/components/ChatDrawer";
+import FloatingChatButton from "@/components/FloatingChatButton";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import styles from "./docs.module.css";
 
@@ -24,6 +26,7 @@ function DocsPageContent() {
     path: string;
     type: "page" | "tree";
   } | null>(null);
+  const [isGlobalChatOpen, setIsGlobalChatOpen] = useState(false);
 
   useEffect(() => {
     async function fetchTree() {
@@ -115,7 +118,7 @@ function DocsPageContent() {
       <div className={styles.loading}>
         <div className={styles.loadingContent}>
           <div className={styles.spinner} />
-          <p className={styles.loadingText}>Loading documentation...</p>
+          <p className={styles.loadingText}>Carregando documentação...</p>
         </div>
       </div>
     );
@@ -135,7 +138,7 @@ function DocsPageContent() {
               />
             </svg>
           </div>
-          <h2 className={styles.errorTitle}>Error Loading Documentation</h2>
+          <h2 className={styles.errorTitle}>Erro ao carregar documentação</h2>
           <p className={styles.errorMessage}>{error}</p>
         </div>
       </div>
@@ -198,6 +201,17 @@ function DocsPageContent() {
           </div>
         )}
       </div>
+
+      {/* Global Chat Drawer */}
+      <ChatDrawer
+        isOpen={isGlobalChatOpen}
+        onClose={() => setIsGlobalChatOpen(false)}
+      />
+
+      {/* Floating Chat Button */}
+      {!isGlobalChatOpen && (
+        <FloatingChatButton onClick={() => setIsGlobalChatOpen(true)} />
+      )}
     </div>
   );
 }

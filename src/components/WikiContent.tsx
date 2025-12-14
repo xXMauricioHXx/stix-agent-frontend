@@ -40,9 +40,9 @@ export const WikiContent: React.FC<WikiContentProps> = ({
             />
           </svg>
         </div>
-        <h3 className={styles.emptyTitle}>No page selected</h3>
+        <h3 className={styles.emptyTitle}>Nenhuma página selecionada</h3>
         <p className={styles.emptyDescription}>
-          Select a page from the sidebar to view its content
+          Selecione uma página do menu lateral para visualizar seu conteúdo
         </p>
       </div>
     );

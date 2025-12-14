@@ -37,8 +37,8 @@ export const DocsSidebar: React.FC<DocsSidebarProps> = ({
       {/* Sidebar */}
       <aside className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}>
         <div className={styles.header}>
-          <h2>Documentation</h2>
-          <p>Browse all topics</p>
+          <h2>Documentação</h2>
+          <p>Explore todos os tópicos</p>
         </div>
 
         {/* Navigation Tree */}
@@ -61,7 +61,7 @@ export const DocsSidebar: React.FC<DocsSidebarProps> = ({
 
         {/* Sidebar Footer */}
         <div className={styles.footer}>
-          <p>Stix Documentation</p>
+          <p>Stix Documentação</p>
           <p>Version 1.0.0</p>
         </div>
       </aside>
