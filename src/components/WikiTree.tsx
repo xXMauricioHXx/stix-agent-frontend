@@ -15,6 +15,7 @@ interface WikiTreeProps {
   selectedPage?: WikiPage | null;
   level?: number;
   onEmbed?: (page: WikiPage, type: "page" | "tree") => void;
+  expandedPaths?: Set<string>;
 }
 
 export const WikiTree: React.FC<WikiTreeProps> = ({
@@ -23,15 +24,24 @@ export const WikiTree: React.FC<WikiTreeProps> = ({
   selectedPage,
   level = 0,
   onEmbed,
+  expandedPaths,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(level === 0);
+  // Track manual toggle state (null means use prop value)
+  const [manuallyToggled, setManuallyToggled] = useState<boolean | null>(null);
+
   const hasChildren = page.subPages && page.subPages.length > 0;
   const isSelected = selectedPage?.path === page.path;
+
+  // Determine if expanded: manual toggle takes precedence, otherwise use expandedPaths
+  const isExpanded =
+    manuallyToggled !== null
+      ? manuallyToggled
+      : level === 0 || expandedPaths?.has(page.path) || false;
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (hasChildren) {
-      setIsExpanded((prev) => !prev);
+      setManuallyToggled((prev) => (prev === null ? !isExpanded : !prev));
     }
   };
 
@@ -110,6 +120,7 @@ export const WikiTree: React.FC<WikiTreeProps> = ({
               selectedPage={selectedPage}
               level={level + 1}
               onEmbed={onEmbed}
+              expandedPaths={expandedPaths}
             />
           ))}
         </div>

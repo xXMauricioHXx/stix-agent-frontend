@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { WikiPage } from "@/adapters/azure-wiki.adapter";
 import { WikiContent } from "@/components/WikiContent";
@@ -13,7 +14,41 @@ import FloatingChatButton from "@/components/FloatingChatButton";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import styles from "./page.module.css";
 
+/**
+ * Recursively finds a page in the tree by its path
+ */
+function findPageByPath(tree: WikiPage | null, path: string): WikiPage | null {
+  if (!tree) return null;
+  if (tree.path === path) return tree;
+
+  if (tree.subPages) {
+    for (const subPage of tree.subPages) {
+      const found = findPageByPath(subPage, path);
+      if (found) return found;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Gets all parent paths from a given path
+ * Example: "/Stix/Tribo/Doc.md" => ["/Stix", "/Stix/Tribo"]
+ */
+function getParentPaths(path: string): string[] {
+  const parts = path.split("/").filter(Boolean);
+  const parentPaths: string[] = [];
+
+  for (let i = 1; i < parts.length; i++) {
+    parentPaths.push("/" + parts.slice(0, i).join("/"));
+  }
+
+  return parentPaths;
+}
+
 function DocsPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [tree, setTree] = useState<WikiPage | null>(null);
   const [selectedPage, setSelectedPage] = useState<WikiPage | null>(null);
   const [content, setContent] = useState<string>("");
@@ -33,6 +68,10 @@ function DocsPageContent() {
     isIndexing: boolean;
     path: string | null;
   }>({ isIndexing: false, path: null });
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
+
+  // Track which paths have been indexed to avoid duplicate calls
+  const indexedPathsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     async function fetchTree() {
@@ -54,9 +93,35 @@ function DocsPageContent() {
     fetchTree();
   }, []);
 
-  const handleSelectPage = async (page: WikiPage) => {
+  // Restore selected page from URL on page load
+  useEffect(() => {
+    if (!tree || isLoadingTree) return;
+
+    const pathFromUrl = searchParams.get("path");
+    if (pathFromUrl) {
+      const page = findPageByPath(tree, pathFromUrl);
+      if (page) {
+        // Skip URL update since we're already restoring from URL
+        handleSelectPage(page, true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tree, isLoadingTree]);
+
+  const handleSelectPage = async (page: WikiPage, skipUrlUpdate = false) => {
     setSelectedPage(page);
     setIsMobileMenuOpen(false);
+
+    // Calculate and set expanded paths for the selected page
+    const parentPaths = getParentPaths(page.path);
+    setExpandedPaths(new Set(parentPaths));
+
+    // Update URL with the selected page path (unless we're restoring from URL)
+    if (!skipUrlUpdate) {
+      const params = new URLSearchParams();
+      params.set("path", page.path);
+      router.push(`?${params.toString()}`, { scroll: false });
+    }
 
     if (page.content) {
       setContent(page.content);
@@ -93,6 +158,15 @@ function DocsPageContent() {
 
   // Trigger lazy indexing in background (non-blocking)
   const triggerLazyIndexing = async (path: string) => {
+    // Skip if this path has already been indexed in this session
+    if (indexedPathsRef.current.has(path)) {
+      console.log(`[Lazy Index] Skipping - already indexed: ${path}`);
+      return;
+    }
+
+    // Mark as indexed before starting to prevent duplicate calls
+    indexedPathsRef.current.add(path);
+
     try {
       console.log(`[Lazy Index] Triggering indexing for: ${path}`);
 
@@ -253,6 +327,7 @@ function DocsPageContent() {
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
           onEmbed={handleEmbed}
+          expandedPaths={expandedPaths}
         />
 
         {/* Main Content Area */}

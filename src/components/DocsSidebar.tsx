@@ -12,6 +12,7 @@ interface DocsSidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
   onEmbed?: (page: WikiPage, type: "page" | "tree") => void;
+  expandedPaths?: Set<string>;
 }
 
 export const DocsSidebar: React.FC<DocsSidebarProps> = ({
@@ -21,6 +22,7 @@ export const DocsSidebar: React.FC<DocsSidebarProps> = ({
   isOpen = true,
   onClose,
   onEmbed,
+  expandedPaths,
 }) => {
   return (
     <>
@@ -50,6 +52,7 @@ export const DocsSidebar: React.FC<DocsSidebarProps> = ({
               }}
               selectedPage={selectedPage}
               onEmbed={onEmbed}
+              expandedPaths={expandedPaths}
             />
           ) : (
             <div className={styles.loading}>Loading navigation...</div>

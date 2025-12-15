@@ -11,11 +11,27 @@ interface WikiContentProps {
   title?: string;
 }
 
+/**
+ * Normalizes markdown content to ensure proper formatting for ReactMarkdown
+ * Fixes issues like missing spaces after heading markers (#)
+ */
+const normalizeMarkdown = (markdown: string): string => {
+  if (!markdown) return markdown;
+
+  // Add space after heading markers if missing
+  // Matches: #Word or ##Word or ###Word etc. (without space after #)
+  // Replaces with: # Word or ## Word or ### Word (with space)
+  return markdown.replace(/^(#{1,6})([^\s#])/gm, "$1 $2");
+};
+
 export const WikiContent: React.FC<WikiContentProps> = ({
   content,
   isLoading,
   title,
 }) => {
+  // Normalize the markdown content before rendering
+  const normalizedContent = normalizeMarkdown(content);
+
   if (isLoading) {
     return (
       <div className={styles.loading}>
@@ -61,7 +77,7 @@ export const WikiContent: React.FC<WikiContentProps> = ({
       )}
 
       {/* Markdown Content */}
-      <div className={`${styles.content} prose prose-slate dark:prose-invert`}>
+      <div className={`${styles.content} prose`}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
@@ -108,7 +124,7 @@ export const WikiContent: React.FC<WikiContentProps> = ({
             ),
           }}
         >
-          {content}
+          {normalizedContent}
         </ReactMarkdown>
       </div>
     </article>
