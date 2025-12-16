@@ -64,10 +64,7 @@ function DocsPageContent() {
   const [drawerInitialMessage, setDrawerInitialMessage] = useState<
     string | undefined
   >(undefined);
-  const [indexingStatus, setIndexingStatus] = useState<{
-    isIndexing: boolean;
-    path: string | null;
-  }>({ isIndexing: false, path: null });
+
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
 
   // Track which paths have been indexed to avoid duplicate calls
@@ -171,12 +168,6 @@ function DocsPageContent() {
       console.log(`[Lazy Index] Triggering indexing for: ${path}`);
 
       // Set indexing status
-      setIndexingStatus({ isIndexing: true, path });
-
-      // Show toast notification
-      const toastId = toast.loading("Adicionando a base de conhecimento...", {
-        position: "bottom-right",
-      });
 
       const response = await fetch("/api/wiki/index", {
         method: "POST",
@@ -194,40 +185,20 @@ function DocsPageContent() {
           console.log(
             `[Lazy Index] Page reindexed with ${result.chunk_count} chunks`
           );
-          toast.update(toastId, {
-            render: `Página adicionada à base de conhecimento`,
-            type: "success",
-            isLoading: false,
-            autoClose: 3000,
-          });
         } else {
           console.log(`[Lazy Index] Page already indexed, skipped`);
-          toast.update(toastId, {
-            render: "Página já adicionada à base de conhecimento",
-            type: "info",
-            isLoading: false,
-            autoClose: 2000,
-          });
         }
       } else {
         console.error(
           `[Lazy Index] Failed to index page:`,
           await response.text()
         );
-        toast.update(toastId, {
-          render: "Erro ao adicionar página à base de conhecimento",
-          type: "error",
-          isLoading: false,
-          autoClose: 3000,
-        });
       }
     } catch (error) {
       console.error(`[Lazy Index] Error triggering indexing:`, error);
+
       toast.error("Erro ao adicionar página à base de conhecimento");
       // Don't block UI on indexing errors
-    } finally {
-      // Clear indexing status
-      setIndexingStatus({ isIndexing: false, path: null });
     }
   };
 

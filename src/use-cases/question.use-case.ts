@@ -8,8 +8,12 @@ export class QuestionUseCase {
   ) {}
 
   async execute(question: string) {
+    console.log(question);
+    const enrichedQuestion = await this.openIAAdapter.enrichQuestion(question);
+    console.log(enrichedQuestion);
+
     const { contextText, documents } = await this.supabaseAdapter.searchSimilar(
-      question,
+      enrichedQuestion,
       {
         matchCount: 5,
         filter: {},
@@ -24,7 +28,7 @@ export class QuestionUseCase {
       };
     }
 
-    const answer = await this.openIAAdapter.chat(contextText, question);
+    const answer = await this.openIAAdapter.chat(contextText, enrichedQuestion);
 
     return {
       answer,

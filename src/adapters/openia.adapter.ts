@@ -190,7 +190,7 @@ export class OpenIAAdapter {
 
     this.llm = new ChatOpenAI({
       modelName: "gpt-4o-mini",
-      temperature: 0.2,
+      temperature: 0.1,
       openAIApiKey: process.env.OPENAI_API_KEY,
     });
   }
@@ -253,6 +253,62 @@ export class OpenIAAdapter {
 
     const response = await chain.invoke({
       context,
+      question,
+    });
+
+    return response;
+  }
+
+  async enrichQuestion(question: string): Promise<string> {
+    const prompt = ChatPromptTemplate.fromMessages([
+      [
+        "system",
+        `
+        Você é um assistente que transforma uma pergunta do usuário em uma consulta de busca otimizada
+        para recuperação semântica em documentação técnica (Azure Wiki).
+
+        Retorne APENAS JSON válido.
+        NÃO inclua explicações, comentários ou texto fora do JSON.
+
+        Entrada:
+        - user_question: string
+
+        Saída (JSON):
+        {{
+          "search_query": string,
+          "intent": "explain" | "howto" | "debug" | "compare" | "locate" | "other",
+          "must_have_terms": string[],
+          "should_have_terms": string[],
+          "filters": {{
+            "page_id"?: string,
+            "path_prefix"?: string,
+            "version"?: string,
+            "endpoint"?: string,
+            "service"?: string
+          }}
+        }}
+
+        Regras:
+        - search_query deve ser objetiva, técnica e conter 8–20 palavras.
+        - Extraia entidades técnicas relevantes (endpoints, versões, sistemas, erros).
+        - Não invente valores.
+        - Se um campo não fizer sentido, retorne array vazio ou objeto vazio.
+        `,
+      ],
+      [
+        "human",
+        `
+          user_question:
+          {question}
+        `,
+      ],
+    ]);
+
+    const outputParser = new StringOutputParser();
+
+    const chain = RunnableSequence.from([prompt, this.llm, outputParser]);
+
+    const response = await chain.invoke({
       question,
     });
 
