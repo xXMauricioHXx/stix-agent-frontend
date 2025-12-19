@@ -6,15 +6,18 @@ export interface Message {
 }
 
 export interface QuestionRequest {
+  conversation_id: string;
   question: string;
 }
 
 export interface QuestionResponse {
   answer: string;
-  sources: {
-    id: string;
-    content: string;
-    metadata: unknown;
-    similarity: number;
-  }[];
+  conversation_id: string;
+  sources?: any[];
+}
+
+export interface ChatHistoryMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+  created_at: string;
 }

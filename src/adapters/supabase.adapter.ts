@@ -155,7 +155,6 @@ export class SupabaseAdapter {
   ) {
     const queryEmbedding = await this.openIAAdapter.embedding(query);
 
-    // Use RPC function with filter for page_id
     const { data, error } = await this.supabase.rpc("match_documents", {
       query_embedding: queryEmbedding,
       match_count: matchCount,
@@ -178,5 +177,52 @@ export class SupabaseAdapter {
       contextText,
       documents: data,
     };
+  }
+
+  async saveMessage(
+    conversationId: string,
+    role: "user" | "assistant" | "system",
+    content: string
+  ): Promise<void> {
+    const { error } = await this.supabase.from("chat_messages").insert({
+      conversation_id: conversationId,
+      role,
+      content,
+    });
+
+    if (error) {
+      console.error("Error saving chat message:", error);
+      throw error;
+    }
+
+    console.log(
+      `[SupabaseAdapter] Saved ${role} message to conversation ${conversationId}`
+    );
+  }
+
+  async getConversationHistory(
+    conversationId: string,
+    limit: number = 12
+  ): Promise<Array<{ role: string; content: string; created_at: string }>> {
+    const { data, error } = await this.supabase
+      .from("chat_messages")
+      .select("role, content, created_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error("Error fetching conversation history:", error);
+      throw error;
+    }
+
+    // Reverse to get chronological order (oldest first)
+    const messages = (data || []).reverse();
+
+    console.log(
+      `[SupabaseAdapter] Retrieved ${messages.length} messages for conversation ${conversationId}`
+    );
+
+    return messages;
   }
 }

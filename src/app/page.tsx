@@ -153,21 +153,16 @@ function DocsPageContent() {
     }
   };
 
-  // Trigger lazy indexing in background (non-blocking)
   const triggerLazyIndexing = async (path: string) => {
-    // Skip if this path has already been indexed in this session
     if (indexedPathsRef.current.has(path)) {
       console.log(`[Lazy Index] Skipping - already indexed: ${path}`);
       return;
     }
 
-    // Mark as indexed before starting to prevent duplicate calls
     indexedPathsRef.current.add(path);
 
     try {
       console.log(`[Lazy Index] Triggering indexing for: ${path}`);
-
-      // Set indexing status
 
       const response = await fetch("/api/wiki/index", {
         method: "POST",
@@ -185,6 +180,7 @@ function DocsPageContent() {
           console.log(
             `[Lazy Index] Page reindexed with ${result.chunk_count} chunks`
           );
+          toast.success("Página adicionada à base de conhecimento");
         } else {
           console.log(`[Lazy Index] Page already indexed, skipped`);
         }

@@ -1,8 +1,12 @@
 import { StringOutputParser } from "@langchain/core/output_parsers";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import {
+  ChatPromptTemplate,
+  MessagesPlaceholder,
+} from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { HumanMessage, AIMessage, BaseMessage } from "@langchain/core/messages";
 import OpenAI from "openai";
 
 export const template = ChatPromptTemplate.fromMessages([
@@ -158,6 +162,7 @@ Resposta (200 OK):
 > Observação: Todo JSON no template deve estar com chaves escapadas ({{ e }}) para não virar variável do PromptTemplate.
 `,
   ],
+  new MessagesPlaceholder("chat_history"),
   [
     "human",
     `Contexto recuperado da base vetorial (Stix):
@@ -245,7 +250,11 @@ export class OpenIAAdapter {
     return embeddingsResult;
   }
 
-  async chat(context: string, question: string): Promise<string> {
+  async chat(
+    context: string,
+    question: string,
+    chatHistory?: BaseMessage[]
+  ): Promise<string> {
     const prompt = template;
     const outputParser = new StringOutputParser();
 
@@ -254,9 +263,24 @@ export class OpenIAAdapter {
     const response = await chain.invoke({
       context,
       question,
+      chat_history: chatHistory || [],
     });
 
     return response;
+  }
+
+  convertToLangChainMessages(
+    messages: Array<{ role: string; content: string }>
+  ): BaseMessage[] {
+    return messages
+      .filter((msg) => msg.role === "user" || msg.role === "assistant")
+      .map((msg) => {
+        if (msg.role === "user") {
+          return new HumanMessage(msg.content);
+        } else {
+          return new AIMessage(msg.content);
+        }
+      });
   }
 
   async enrichQuestion(question: string): Promise<string> {
@@ -314,40 +338,4 @@ export class OpenIAAdapter {
 
     return response;
   }
-
-  // async chat(context: string, question: string) {
-  //   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-  //     {
-  //       role: "system",
-  //       content: template,
-  //     },
-  //     {
-  //       role: "user",
-  //       content: `
-  //         Contexto: ${context}
-  //         Pergunta: ${question}
-
-  //         - Responda em português, de forma clara e objetiva.
-  //         - A resposta deve ser sempre em markdown.
-  //         - Use listas, tabelas ou blocos de código quando facilitar o entendimento.
-  //         - Nunca use emojis ou linguagem coloquial.
-  //         - Se não houver informação suficiente, responda de forma curta e direta, sem inventar:
-  //           - “Não encontrei essa informação na base da Stix.”
-  //           - “Esse assunto parece fora do meu escopo de Stix.”
-  //           - “Só consigo responder perguntas diretamente ligadas à Stix.”`,
-  //     },
-  //   ];
-
-  //   const completion = await this.openai.chat.completions.create({
-  //     model: "gpt-4o-mini",
-  //     messages,
-  //     temperature: 0.7,
-  //   });
-
-  //   const answer = completion.choices[0]?.message?.content ?? "";
-
-  //   return {
-  //     answer,
-  //   };
-  // }
 }

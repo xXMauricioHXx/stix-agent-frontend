@@ -10,17 +10,23 @@ export class ChatApiError extends Error {
   }
 }
 
-export async function sendQuestion(question: string): Promise<string> {
+export async function sendQuestion(
+  question: string,
+  conversationId: string
+): Promise<string> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/question`, {
+    const response = await fetch(`${API_BASE_URL}/api/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ question } as QuestionRequest),
+      body: JSON.stringify({
+        conversation_id: conversationId,
+        question,
+      } as QuestionRequest),
       signal: controller.signal,
     });
 

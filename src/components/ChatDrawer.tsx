@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Message } from "@/types/chat";
 import { sendQuestion, ChatApiError } from "@/services/chatApi";
+import { useConversationId } from "@/hooks/useConversationId";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import LoadingIndicator from "@/components/LoadingIndicator";
@@ -17,6 +18,12 @@ interface ChatDrawerProps {
   pageContent?: string;
 }
 
+interface Conversation {
+  conversation_id: string;
+  first_message: string;
+  created_at: string;
+}
+
 export default function ChatDrawer({
   isOpen,
   onClose,
@@ -25,6 +32,12 @@ export default function ChatDrawer({
   initialMessage,
   pageContent,
 }: ChatDrawerProps) {
+  const { conversationId, resetConversation, loadConversation } =
+    useConversationId();
+  const [showConversationList, setShowConversationList] = useState(false);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loadingConversations, setLoadingConversations] = useState(false);
+
   const getInitialMessages = useCallback((): Message[] => {
     const baseMessage: Message = {
       id: "1",
@@ -56,7 +69,7 @@ export default function ChatDrawer({
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if (!inputValue.trim() || isLoading || !conversationId) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -94,8 +107,8 @@ export default function ChatDrawer({
         const data = await apiResponse.json();
         response = data.answer;
       } else {
-        // Use global chat API
-        response = await sendQuestion(userMessage.text);
+        // Use global chat API with conversation memory
+        response = await sendQuestion(userMessage.text, conversationId);
       }
 
       const botMessage: Message = {
@@ -123,6 +136,55 @@ export default function ChatDrawer({
       setMessages((prev) => [...prev, errorBotMessage]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Fetch list of conversations
+  const fetchConversations = async () => {
+    setLoadingConversations(true);
+    try {
+      const response = await fetch("/api/chat/conversations");
+      if (!response.ok) {
+        throw new Error("Failed to fetch conversations");
+      }
+      const data = await response.json();
+      setConversations(data.conversations || []);
+      setShowConversationList(true);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+    } finally {
+      setLoadingConversations(false);
+    }
+  };
+
+  // Load a specific conversation
+  const handleLoadConversation = async (convId: string) => {
+    loadConversation(convId);
+    setShowConversationList(false);
+
+    // Fetch conversation history
+    try {
+      const response = await fetch(
+        `/api/chat/history?conversation_id=${convId}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch conversation history");
+      }
+
+      const data = await response.json();
+      const historyMessages: Message[] = data.messages.map(
+        (msg: any, index: number) => ({
+          id: `${index}`,
+          text: msg.content,
+          sender: msg.role === "user" ? "user" : "bot",
+          timestamp: new Date(msg.created_at),
+        })
+      );
+
+      setMessages(historyMessages);
+    } catch (error) {
+      console.error("Error loading conversation:", error);
+      setMessages(getInitialMessages());
     }
   };
 
@@ -177,26 +239,139 @@ export default function ChatDrawer({
                 </p>
               </div>
             </div>
-            <button
-              className={styles.closeButton}
-              onClick={onClose}
-              aria-label="Fechar chat"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <div style={{ display: "flex", gap: "8px" }}>
+              {!isContextMode && (
+                <>
+                  <button
+                    className={styles.historyButton}
+                    onClick={fetchConversations}
+                    aria-label="Histórico de conversas"
+                    title="Ver conversas anteriores"
+                    disabled={loadingConversations}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M3 3v5h5M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+                      <path d="M12 7v5l4 2" />
+                    </svg>
+                  </button>
+                  <button
+                    className={styles.newConversationButton}
+                    onClick={() => {
+                      resetConversation();
+                      setMessages(getInitialMessages());
+                    }}
+                    aria-label="Nova conversa"
+                    title="Iniciar nova conversa"
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </button>
+                </>
+              )}
+              <button
+                className={styles.closeButton}
+                onClick={onClose}
+                aria-label="Fechar chat"
               >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
           </div>
+
+          {/* Conversation List Modal */}
+          {showConversationList && (
+            <div className={styles.conversationListOverlay}>
+              <div className={styles.conversationListModal}>
+                <div className={styles.conversationListHeader}>
+                  <h3>Conversas Anteriores</h3>
+                  <button
+                    onClick={() => setShowConversationList(false)}
+                    className={styles.modalCloseButton}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+                <div className={styles.conversationList}>
+                  {conversations.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <p>Nenhuma conversa anterior encontrada</p>
+                    </div>
+                  ) : (
+                    conversations.map((conv) => (
+                      <div
+                        key={conv.conversation_id}
+                        className={`${styles.conversationItem} ${
+                          conv.conversation_id === conversationId
+                            ? styles.conversationItemActive
+                            : ""
+                        }`}
+                        onClick={() =>
+                          handleLoadConversation(conv.conversation_id)
+                        }
+                      >
+                        <div className={styles.conversationPreview}>
+                          {conv.first_message.substring(0, 80)}
+                          {conv.first_message.length > 80 && "..."}
+                        </div>
+                        <div className={styles.conversationDate}>
+                          {new Date(conv.created_at).toLocaleDateString(
+                            "pt-BR",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Chat Container */}
           <div className={styles.chatWrapper}>

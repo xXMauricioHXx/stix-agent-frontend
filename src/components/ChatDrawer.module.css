@@ -123,6 +123,169 @@
   transform: scale(0.95);
 }
 
+.newConversationButton {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.newConversationButton:hover {
+  background: var(--bg-secondary);
+  color: #667eea;
+}
+
+.newConversationButton:active {
+  transform: scale(0.95);
+}
+
+.historyButton {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.historyButton:hover {
+  background: var(--bg-secondary);
+  color: #667eea;
+}
+
+.historyButton:active {
+  transform: scale(0.95);
+}
+
+.historyButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Conversation List Modal */
+.conversationListOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.conversationListModal {
+  background: var(--bg-primary);
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.conversationListHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.conversationListHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modalCloseButton {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modalCloseButton:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.conversationList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.conversationItem {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
+}
+
+.conversationItem:hover {
+  background: var(--bg-secondary);
+  border-color: #667eea;
+}
+
+.conversationItemActive {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+}
+
+.conversationPreview {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.conversationDate {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.emptyState p {
+  color: var(--text-muted);
+  margin: 0;
+}
+
 .chatWrapper {
   flex: 1;
   min-height: 0;
